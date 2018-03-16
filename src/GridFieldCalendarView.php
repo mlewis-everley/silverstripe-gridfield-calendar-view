@@ -3,6 +3,7 @@
 namespace WebbuildersGroup\SilverStripe\GridFieldCalendarView;
 
 use SilverStripe\View\ArrayData;
+use SilverStripe\View\Requirements;
 use SilverStripe\Control\Controller;
 use SilverStripe\Control\HTTPRequest;
 use SilverStripe\Security\SecurityToken;
@@ -19,6 +20,27 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
     private $_titleField;
     private $_summaryField;
     private $_allDayField;
+
+    /**
+     * Default options for the FullCalendar instance
+     * 
+     * @var array
+     */
+    private $default_options = [
+        "header" => [
+            "left" => 'title',
+            "center" => '',
+            "right" => 'today prev,next'
+        ],
+        "footer" => false
+    ];
+
+    /**
+     * Overwrite the default options with your own settings
+     * 
+     * @var array
+     */
+    private $custom_options = [];
 
     /**
      * Constructor
@@ -49,6 +71,16 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
     {
         $dataList = $gridField->getList();
 
+        $options = json_encode(array_merge(
+            $this->default_options,
+            $this->getCustomOptions()
+        ));
+
+        Requirements::customScript(<<<JS
+            var gridfield_calendar_data = $options
+JS
+        );
+
         $calendarData = ArrayData::create([
             'FeedLink' => $gridField->Link('calendar-data-feed')
         ]);
@@ -60,7 +92,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
             $this->_togglePosition => $toggleData->renderWith(self::class . '_toggle')
         ];
     }
-    
+
     /**
      * Sets the start date/time field name
      * 
@@ -69,8 +101,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
      */
     public function setStartDateField($field)
     {
-        $this->_startDateField=$field;
-
+        $this->_startDateField = $field;
         return $this;
     }
     
@@ -192,7 +223,29 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
     {
         return $this->_allDayField;
     }
-    
+
+    /**
+     * Gets the calendar options that are currently set
+     * 
+     * @return {string}
+     */
+    public function getCustomOptions()
+    {
+        return $this->custom_options;
+    }
+
+    /**
+     * Overwrite the custom calendar options
+     * 
+     * @param {array} $data List of items to appear in the header
+     * @return {GridFieldCalendarView}
+     */
+    public function setCustomOptions($options)
+    {
+        $this->custom_options = $options;
+        return $this;
+    }
+
     /**
      * Return URLs to be handled by this grid field component, in an array the same form as $url_handlers.
      * @return {array}
@@ -203,7 +256,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
             'calendar-data-feed' => 'handleCalendarFeed'
         ];
     }
-    
+
     /**
      * Handles retrieving the data for the calendar
      * @param {GridField} $gridField GridField instance
@@ -245,19 +298,36 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
         }
 
         //Fetch the month's events
-        $list=$gridField->getList();
-        if ($deletedManip = $gridField->getConfig()->getComponentByType('GridFieldDeletedManipulator')) {
+        $list = $gridField->getList();
+        $deletedManip = $gridField
+            ->getConfig()
+            ->getComponentByType(GridFieldDeletedManipulator::class);
+
+        if ($deletedManip) {
             $list = $deletedManip->getManipulatedData($gridField, $list);
         }
 
         $events = $list
-            ->filter($this->_startDateField.':GreaterThanOrEqual', date('Y-m-01 00:00:00', strtotime($startDate)))
-            ->filter($this->_startDateField.':LessThanOrEqual', date('Y-m-t 23:59:59', strtotime($endDate)))
-            ->sort($this->_startDateField);
+            ->filter(array(
+                $this->_startDateField.':GreaterThanOrEqual' => date(
+                    'Y-m-01 00:00:00',
+                    strtotime($startDate)
+                ),
+                $this->_startDateField.':LessThanOrEqual' => date(
+                    'Y-m-t 23:59:59',
+                    strtotime($endDate)
+                )
+            ))->sort($this->_startDateField);
 
         //Build the response data
         $result = [];
         foreach ($events as $event) {
+            $deleted_event_class = null;
+
+            if ($event->hasMethod('getIsDeletedFromStage') && $event->getIsDeletedFromStage()) {
+                $deleted_event_class = 'deleted-event';
+            }
+            
             $result[] = [
                 'title' => $event->{$this->_titleField},
                 'abstractText' => $event->{$this->_summaryField},
@@ -265,7 +335,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
                 'start' => date('c', strtotime($event->{$this->_startDateField})),
                 'end' => date('c', strtotime($event->{$this->_endDateField})),
                 'url' => Controller::join_links($gridField->Link('item'), $event->ID, 'edit'),
-                'className' => ($event->hasMethod('getIsDeletedFromStage') && $event->getIsDeletedFromStage() ? 'deleted-event':null)
+                'className' => $deleted_event_class
             ];
         }
 
