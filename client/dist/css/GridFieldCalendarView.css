@@ -3,9 +3,13 @@
 }
 
 /**** Calendar Display ****/
-.grid-field__calendar .calendar-display .fc-toolbar {
+.grid-field__calendar .calendar-display .fc-header-toolbar {
     margin-top: 1.3rem;
     text-transform: uppercase;
+}
+
+.grid-field__calendar .calendar-display .fc-footer-toolbar {
+    margin-bottom: 1.3rem;
 }
 
 .grid-field__calendar .calendar-display .fc-today {
@@ -13,12 +17,17 @@
 }
 
 .grid-field__calendar .calendar-display .fc-head .fc-widget-header th {
-    padding-top: 1.2308rem;
-    padding-bottom: 1.2308rem;
+    padding-top: 0.7rem;
+    padding-bottom: 0.7rem;
+    font-size: 15px;
+}
+
+.grid-field__calendar .calendar-display .fc-widget-content .fc-day-number {
+    font-size: 15px;
 }
 
 .grid-field__calendar .calendar-display .fc-widget-content .fc-content {
-    padding: 0.5rem;
+    padding: 0.1rem;
     font-size: 13px;
 }
 
