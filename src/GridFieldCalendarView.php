@@ -10,6 +10,7 @@ use SilverStripe\Security\SecurityToken;
 use SilverStripe\Forms\GridField\GridField;
 use SilverStripe\Forms\GridField\GridField_URLHandler;
 use SilverStripe\Forms\GridField\GridField_HTMLProvider;
+use SilverStripe\Core\Injector\Injector;
 
 class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHandler
 {
@@ -70,6 +71,21 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
     public function getHTMLFragments($gridField)
     {
         $dataList = $gridField->getList();
+        $request = Injector::inst()->get(HTTPRequest::class);
+        
+        // Get the current query string and and to the request
+        // if available
+        $request_vars = $request->getVars();
+
+        if (array_key_exists("url", $request_vars)) {
+            unset($request_vars["url"]);
+        }
+
+        $params = http_build_query($request_vars);
+
+        if (!empty($params)) {
+            $params = "?" . $params;
+        }
 
         $options = json_encode(array_merge(
             $this->default_options,
@@ -82,7 +98,7 @@ JS
         );
 
         $calendarData = ArrayData::create([
-            'FeedLink' => $gridField->Link('calendar-data-feed')
+            'FeedLink' => $gridField->Link('calendar-data-feed') . $params
         ]);
 
         $toggleData = ArrayData::create([]);
