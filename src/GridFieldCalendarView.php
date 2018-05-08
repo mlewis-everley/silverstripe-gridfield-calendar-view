@@ -31,21 +31,21 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
      * 
      * @var string
      */
-    private $_startDateField;
+    protected $startDateField;
 
     /**
      * The name of the field used for the end date
      * 
      * @var string
      */
-    private $_endDateField;
+    protected $endDateField;
 
     /**
      * The location on the gridfield to add the toggle controls
      * 
      * @var string
      */
-    private $_togglePosition;
+    protected $togglePosition;
 
     /**
      * The name of the field (DB, Casted, etc) used to generate a title
@@ -53,7 +53,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
      * 
      * @var string
      */
-    private $_titleField;
+    protected $titleField;
 
     /**
      * The name of the field (DB, Casted, etc) used for to provide more detailed
@@ -61,7 +61,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
      * 
      * @var string
      */
-    private $_summaryField;
+    protected $summaryField;
 
     /**
      * The name of the field (DB, Casted, etc) used to determine if the event
@@ -69,26 +69,36 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
      * 
      * @var string
      */
-    private $_allDayField;
+    protected $allDayField;
 
     /**
      * The name of the field (DB, Casted, etc) used for the event colour
      * 
      * @var string
      */
-    private $_colourField;
+    protected $colourField;
 
     /**
      * @var boolean
      */
-    private $_show_calendar_default = false;
+    protected $show_calendar_default = false;
+
+    /**
+     * @var string
+     */
+    protected $feed_start_format = 'Y-m-01 00:00:00';
+
+    /**
+     * @var string
+     */
+    protected $feed_end_format = 'Y-m-t 23:59:59';
 
     /**
      * Default options for the FullCalendar instance
      * 
      * @var array
      */
-    private $_default_options = [
+    protected $default_options = [
         "header" => [
             "left" => 'title',
             "center" => '',
@@ -102,7 +112,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
      * 
      * @var array
      */
-    private $_custom_options = [];
+    protected $custom_options = [];
 
     /**
      * Constructor
@@ -118,17 +128,17 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
     public function __construct(
         $startDateField,
         $endDateField,
-        $togglePosition='buttons-before-right',
+        $togglePosition = 'buttons-before-left',
         $titleField='Title',
         $summaryField='Summary',
         $allDayField='IsAllDay'
     ) {
-        $this->_startDateField = $startDateField;
-        $this->_endDateField = $endDateField;
-        $this->_togglePosition = $togglePosition;
-        $this->_titleField = $titleField;
-        $this->_summaryField = $summaryField;
-        $this->_allDayField = $allDayField;
+        $this->startDateField = $startDateField;
+        $this->endDateField = $endDateField;
+        $this->togglePosition = $togglePosition;
+        $this->titleField = $titleField;
+        $this->summaryField = $summaryField;
+        $this->allDayField = $allDayField;
     }
     
     /**
@@ -160,7 +170,7 @@ class GridFieldCalendarView implements GridField_HTMLProvider, GridField_URLHand
 
         $options = json_encode(
             array_merge(
-                $this->_default_options,
+                $this->default_options,
                 $this->getCustomOptions()
             )
         );
@@ -180,7 +190,7 @@ JS
         return [
             'after' => $calendarData
                 ->renderWith(self::class),
-            $this->_togglePosition => $gridField
+            $this->getTogglePosition() => $gridField
                 ->renderWith(
                     self::class . '_toggle',
                     [
@@ -200,7 +210,7 @@ JS
      */
     public function setStartDateField($field)
     {
-        $this->_startDateField = $field;
+        $this->startDateField = $field;
         return $this;
     }
     
@@ -211,7 +221,7 @@ JS
      */
     public function getStartDateField()
     {
-        return $this->_startDateField;
+        return $this->startDateField;
     }
     
     /**
@@ -223,8 +233,7 @@ JS
      */
     public function setEndDateField($field)
     {
-        $this->_endDateField = $field;
-
+        $this->endDateField = $field;
         return $this;
     }
     
@@ -235,7 +244,7 @@ JS
      */
     public function getEndDateField()
     {
-        return $this->_endDateField;
+        return $this->endDateField;
     }
     
     /**
@@ -247,8 +256,7 @@ JS
      */
     public function setTogglePosition($location)
     {
-        $this->_togglePosition=$location;
-
+        $this->togglePosition = $location;
         return $this;
     }
     
@@ -259,7 +267,7 @@ JS
      */
     public function getTogglePosition()
     {
-        return $this->_togglePosition;
+        return $this->togglePosition;
     }
     
     /**
@@ -271,8 +279,7 @@ JS
      */
     public function setTitleField($field)
     {
-        $this->_titleField = $field;
-
+        $this->titleField = $field;
         return $this;
     }
     
@@ -283,7 +290,7 @@ JS
      */
     public function getTitleField()
     {
-        return $this->_titleField;
+        return $this->titleField;
     }
     
     /**
@@ -295,8 +302,7 @@ JS
      */
     public function setSummaryField($field)
     {
-        $this->_summaryField = $field;
-
+        $this->summaryField = $field;
         return $this;
     }
     
@@ -307,7 +313,7 @@ JS
      */
     public function getSummaryField()
     {
-        return $this->_summaryField;
+        return $this->summaryField;
     }
     
     /**
@@ -320,8 +326,7 @@ JS
      */
     public function setAllDayField($field)
     {
-        $this->_allDayField = $field;
-
+        $this->allDayField = $field;
         return $this;
     }
     
@@ -332,7 +337,7 @@ JS
      */
     public function getAllDayField()
     {
-        return $this->_allDayField;
+        return $this->allDayField;
     }
 
     /**
@@ -342,7 +347,7 @@ JS
      */
     public function getCustomOptions()
     {
-        return $this->_custom_options;
+        return $this->custom_options;
     }
 
     /**
@@ -354,7 +359,7 @@ JS
      */
     public function setCustomOptions($options)
     {
-        $this->_custom_options = $options;
+        $this->custom_options = $options;
         return $this;
     }
 
@@ -374,6 +379,66 @@ JS
     }
 
     /**
+     * Return a time string to use on the calendar feed (used to get the first
+     * item in the list).
+     *
+     * @param string $start The start date
+     * 
+     * @return string
+     */
+    protected function getFeedStart($start)
+    {
+        //Figure out the start date
+        $startTS = strtotime($start);
+
+        if ($start && $startTS !== false) {
+            //Push date into next month if first visible day on calendar is not 1
+            if (date('j', $startTS) !=1) {
+                $startDate = date(
+                    'Y-m-01',
+                    strtotime(date('Y-m-01', $startTS).' next month')
+                );
+            } else {
+                $startDate = date('Y-m-d', $startTS);
+            }
+        } else {
+            $startDate = date('Y-m-01');
+        }
+
+        return $startDate;
+    }
+
+    /**
+     * Return a time string to use on the calendar feed (used to get the last
+     * item in the list).
+     *
+     * @param string $end The end date
+     * 
+     * @return string
+     */
+    protected function getFeedEnd($end)
+    {
+        //Figure out the end date
+        $endTS = strtotime($end);
+
+        if ($end && $endTS !== false) {
+            //Push date into previous month if last visible day is less then 28
+            if (date('j', $endTS) < 28) {
+                $endDate = date(
+                    'Y-m-t',
+                    strtotime(date('Y-m-01', $endTS).' previous month')
+                );
+            } else {
+                $endDate = date('Y-m-d', $endTS);
+            }
+        } else {
+            $endDate = date('Y-m-t');
+        }
+
+        return $endDate;
+    }
+    
+    /**
      * Handles retrieving the data for the calendar
      * 
      * @param {GridField}      $gridField GridField instance
@@ -389,40 +454,10 @@ JS
                 ->httpError(403, 'Security Token Expired or Invalid');
         }
 
-        //Figure out the start date
-        $startTS = strtotime($request->postVar('start-date'));
-        if ($request->postVar('start-date') && $startTS !== false) {
-            //Push date into next month if first visible day on calendar is not 1
-            if (date('j', $startTS) !=1) {
-                $startDate = date(
-                    'Y-m-01',
-                    strtotime(date('Y-m-01', $startTS).' next month')
-                );
-            } else {
-                $startDate = date('Y-m-d', $startTS);
-            }
-        } else {
-            $startDate = date('Y-m-01');
-        }
-
-        //Figure out the end date
-        $endTS = strtotime($request->postVar('end-date'));
-        if ($request->postVar('end-date') && $endTS !== false) {
-            //Push date into previous month if last visible day is less then 28
-            if (date('j', $endTS) < 28) {
-                $endDate = date(
-                    'Y-m-t',
-                    strtotime(date('Y-m-01', $endTS).' previous month')
-                );
-            } else {
-                $endDate = date('Y-m-d', $endTS);
-            }
-        } else {
-            $endDate = date('Y-m-t');
-        }
-
-        //Fetch the month's events
+        $startDate = $this->getFeedStart($request->postVar('start-date'));
+        $endDate = $this->getFeedEnd($request->postVar('end-date'));
         $list = $gridField->getList();
+
         $deletedManip = $gridField
             ->getConfig()
             ->getComponentByType(GridFieldDeletedManipulator::class);
@@ -433,17 +468,17 @@ JS
 
         $events = $list
             ->filter(
-                array(
-                $this->_startDateField.':GreaterThanOrEqual' => date(
-                    'Y-m-01 00:00:00',
-                    strtotime($startDate)
-                ),
-                $this->_startDateField.':LessThanOrEqual' => date(
-                    'Y-m-t 23:59:59',
-                    strtotime($endDate)
-                )
-                )
-            )->sort($this->_startDateField);
+                [
+                    $this->getStartDateField() . ':GreaterThanOrEqual' => date(
+                        $this->getFeedStartFormat(),
+                        strtotime($startDate)
+                    ),
+                    $this->getStartDateField() . ':LessThanOrEqual' => date(
+                        $this->getFeedEndFormat(),
+                        strtotime($endDate)
+                    )
+                ]
+            )->sort($this->getStartDateField());
 
         //Build the response data
         $results = [];
@@ -457,11 +492,11 @@ JS
             }
             
             $result = [
-                'title' => $event->{$this->_titleField},
-                'abstractText' => $event->{$this->_summaryField},
-                'allDay' => (bool) $event->{$this->_allDayField},
-                'start' => date('c', strtotime($event->{$this->_startDateField})),
-                'end' => date('c', strtotime($event->{$this->_endDateField})),
+                'title' => $event->{$this->getTitleField()},
+                'abstractText' => $event->{$this->getSummaryField()},
+                'allDay' => (bool) $event->{$this->getAllDayField()},
+                'start' => date('c', strtotime($event->{$this->getStartDateField()})),
+                'end' => date('c', strtotime($event->{$this->getEndDateField()})),
                 'url' => Controller::join_links(
                     $gridField->Link('item'),
                     $event->ID,
@@ -491,25 +526,25 @@ JS
     }
 
     /**
-     * Get the value of _colourField
+     * Get the value of colourField
      * 
      * @return string
      */ 
     public function getColourField()
     {
-        return $this->_colourField;
+        return $this->colourField;
     }
 
     /**
-     * Set the value of _colourField
+     * Set the value of colourField
      * 
-     * @param string $_colourField The name of the field to deisgnate colour
+     * @param string $colourField The name of the field to deisgnate colour
      *
      * @return self
      */ 
-    public function setColourField($_colourField)
+    public function setColourField($colourField)
     {
-        $this->_colourField = $_colourField;
+        $this->colourField = $colourField;
 
         return $this;
     }
@@ -534,6 +569,54 @@ JS
     public function setShowCalendarDefault($_show_calendar_default)
     {
         $this->_show_calendar_default = $_show_calendar_default;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of feed_start_format
+     *
+     * @return  string
+     */ 
+    public function getFeedStartFormat()
+    {
+        return $this->feed_start_format;
+    }
+
+    /**
+     * Set the value of feed_start_format
+     *
+     * @param string $feed_start_format Format string for calendar feed start
+     *
+     * @return self
+     */ 
+    public function setFeedStartFormat($feed_start_format)
+    {
+        $this->feed_start_format = $feed_start_format;
+
+        return $this;
+    }
+
+    /**
+     * Get the value of feed_end_format
+     *
+     * @return  string
+     */ 
+    public function getFeedEndFormat()
+    {
+        return $this->feed_end_format;
+    }
+
+    /**
+     * Set the value of feed_end_format
+     *
+     * @param string $feed_end_format String of end date format
+     *
+     * @return self
+     */ 
+    public function setFeedEndFormat($feed_end_format)
+    {
+        $this->feed_end_format = $feed_end_format;
 
         return $this;
     }
