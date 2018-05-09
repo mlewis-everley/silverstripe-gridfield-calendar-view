@@ -38,9 +38,10 @@
                     gridField.find('.grid-field__calendar').hide();
                     gridField.find('.grid-field__table').show();
                 }
+
+                this._super();
             },
             onadd: function() {
-                this._super();
                 var gridField = this.closest('.ss-gridfield');
                 var state = gridField.getState().GridFieldCalendarView;
                 var mode;
@@ -56,6 +57,8 @@
                 if (active) {
                     this.drawCalendar();
                 }
+
+                this._super();
             },
             onclick: function(e) {
                 //If already active do nothing
@@ -77,6 +80,8 @@
                 
                 this.drawCalendar();
 
+                this._super();
+
                 return false;
             }
         });
@@ -89,8 +94,6 @@
             Rendered: false,
 
             onadd: function() {
-                this._super();
-
                 //Restore the calendar to the front if the rembered state says to
                 var gridField = this
                     .closest('.ss-gridfield');
@@ -102,6 +105,8 @@
                     .attr('data-view-mode');
 
                 setGridState(gridField, state, mode);
+
+                this._super();
             },
 
             redraw: function() {
@@ -287,6 +292,8 @@
                 calendar.fullCalendar(calendar_options);
                 
                 this.setRendered(true);
+
+                this._super();
             }
         });
     });
