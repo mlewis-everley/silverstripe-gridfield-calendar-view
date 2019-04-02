@@ -33,7 +33,7 @@
                 //Switch the view mode
                 if (state && state.view_mode == 'calendar') {
                     gridField.find('.grid-field__table').hide();
-                    gridField.find('.grid-field__calendar').show().redraw();
+                    gridField.find('.grid-field__calendar').show().css('display', 'initial').redraw();
                 } else {
                     gridField.find('.grid-field__calendar').hide();
                     gridField.find('.grid-field__table').show();
